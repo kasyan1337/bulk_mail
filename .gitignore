@@ -147,6 +147,7 @@ dmypy.json
 *.xls;xlsx;csv
 recipients.txt
 data/
+backups/
 
 # Pyre type checker
 .pyre/
