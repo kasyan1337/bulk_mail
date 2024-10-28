@@ -1,5 +1,3 @@
-Here’s a clean and well-structured README for your bulk_mail.py script:
-
 # Bulk Mail Sender
 
 This Python project is designed to send bulk emails to a list of recipients using multiple email accounts configured through environment variables. The script is flexible and supports sending emails with attachments from different email providers.
