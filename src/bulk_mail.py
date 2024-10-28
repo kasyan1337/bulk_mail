@@ -1,7 +1,9 @@
 # bulk_mail.py
 import os
+
 import yagmail
 from dotenv import load_dotenv
+
 
 def load_accounts():
     accounts = {}
@@ -23,12 +25,14 @@ def load_accounts():
         }
     return accounts
 
+
 def get_recipients(file_path):
     with open(file_path, 'r') as file:
         data = file.read()
         # Split emails by comma, semicolon, or newline
         recipients = [email.strip() for email in data.replace('\n', ',').replace(';', ',').split(',') if email.strip()]
     return recipients
+
 
 def get_email_content(subject_path, body_path):
     # Read subject from file
@@ -38,6 +42,7 @@ def get_email_content(subject_path, body_path):
     with open(body_path, 'r') as file:
         body = file.read()
     return subject, body
+
 
 def send_emails(account, recipients, subject, body, attachments, data_folder):
     try:
@@ -69,6 +74,7 @@ def send_emails(account, recipients, subject, body, attachments, data_folder):
             print(f"Email sent to {recipient}")
         except Exception as e:
             print(f"Failed to send email to {recipient}: {e}")
+
 
 def send_bulk_emails(account_name, recipients_filename, subject_filename, body_filename, attachment_filenames):
     # Load accounts
