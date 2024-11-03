@@ -2,6 +2,7 @@ import os
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import re
 
 from dotenv import load_dotenv
 
@@ -44,9 +45,27 @@ def get_recipients(file_path):
 
 # Load email body content from a file
 def get_email_body(body_path):
-    with open(body_path, "r") as file:
-        body = file.read()
-    return body
+    # Define the path to the content.txt file
+    content_path = os.path.join(os.path.dirname(body_path), "content.txt")
+
+    # Check if the body_path is a specific template that requires content from content.txt
+    if os.path.basename(body_path) in ["CWT.html", "WTM.html"]:
+        with open(body_path, "r") as template_file:
+            html_template = template_file.read()
+        with open(content_path, "r") as txt_file:
+            main_content = txt_file.read()
+
+        # Convert plain text from content.txt to HTML format
+        main_content_html = "<p>" + re.sub(r'\n\n+', '</p><p>', main_content).replace('\n', '<br>') + "</p>"
+
+        # Replace the placeholder in the template with the content
+        final_body = html_template.replace("{{ main_content }}", main_content_html)
+    else:
+        # For other files, just read the content as-is
+        with open(body_path, "r") as file:
+            final_body = file.read()
+
+    return final_body
 
 
 # Get file paths for any attachments
@@ -60,6 +79,7 @@ def get_attachment_paths(folder_path):
     return []
 
 
+# New send_emails_smtp function using smtplib and MIMEText
 # New send_emails_smtp function using smtplib and MIMEText
 def send_emails_smtp(account, recipients, subject, body, attachment_paths, format_html):
     try:
@@ -81,10 +101,22 @@ def send_emails_smtp(account, recipients, subject, body, attachment_paths, forma
 
         server.login(account["email"], account["password"])
 
+        # Define custom display names for each account
+        display_names = {
+            "CWT": "Kasim Janci (CWT)",
+            "WTM": "Kasim Janci (WTM)",
+            "TRISTOKORUN": "流沙奶黄包粉丝"
+            # Add other accounts and display names as needed
+        }
+
+        # Determine the display name, or default to the email address if no display name is found
+        from_name = display_names.get(account["name"], account["email"])
+        from_address = f"{from_name} <{account['email']}>"
+
         for recipient in recipients:
             # Set up the MIME message structure
             msg = MIMEMultipart("alternative")
-            msg["From"] = account["email"]
+            msg["From"] = from_address
             msg["To"] = recipient
             msg["Subject"] = subject
 
@@ -121,6 +153,15 @@ def send_emails_smtp(account, recipients, subject, body, attachment_paths, forma
 
 # Main function to initiate the bulk email sending process
 def send_bulk_emails(account_name, recipients_filename, subject, body_filename):
+    # Check if body_filename requires specific account_name
+    if body_filename == "CWT.html" and account_name != "CWT":
+        print("Error: When using CWT.html as body, the email_sender must be 'CWT'.")
+        return
+    elif body_filename == "WTM.html" and account_name != "WTM":
+        print("Error: When using WTM.html as body, the email_sender must be 'WTM'.")
+        return
+
+    # Load accounts
     accounts = load_accounts()
     if account_name not in accounts:
         print(f"Account '{account_name}' not found.")
