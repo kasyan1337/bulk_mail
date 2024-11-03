@@ -102,7 +102,7 @@ def send_emails_smtp(account, recipients, subject, body, attachment_paths, forma
         print(f"Failed to send email: {e}")
 
 # Main function to initiate the bulk email sending process
-def send_bulk_emails(account_name, recipients_filename, subject_filename, body_filename, format_html=True):
+def send_bulk_emails(account_name, recipients_filename, subject_filename, body_filename):
     accounts = load_accounts()
     if account_name not in accounts:
         print(f"Account '{account_name}' not found.")
@@ -116,6 +116,9 @@ def send_bulk_emails(account_name, recipients_filename, subject_filename, body_f
     recipients_file = os.path.join(data_folder, recipients_filename)
     subject_file = os.path.join(data_folder, subject_filename)
     body_file = os.path.join(data_folder, body_filename)
+
+    # Automatically determine format_html based on the body file extension
+    format_html = body_filename.endswith('.html')
 
     recipients = get_recipients(recipients_file)
     subject, body = get_email_content(subject_file, body_file)
