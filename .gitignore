@@ -146,8 +146,12 @@ venv.bak/
 dmypy.json
 *.xls;xlsx;csv
 recipients.txt
-data/
-backups/
+
+email/
+archive/backups/
+archive/samples/
+archive/
+attachments/
 
 # Pyre type checker
 .pyre/
