@@ -1,6 +1,7 @@
 import os
 import re
 import smtplib
+import time
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -152,7 +153,8 @@ def send_emails_smtp(account, recipients, subject, body, attachment_paths, forma
         from_name = display_names.get(account["name"], account["email"])
         from_address = f"{from_name} <{account['email']}>"
 
-        for recipient in recipients:
+        total_recipients = len(recipients)
+        for index, recipient in enumerate(recipients, start=1):
             # Set up the MIME message structure
             msg = MIMEMultipart("alternative")
             msg["From"] = from_address
@@ -186,7 +188,11 @@ def send_emails_smtp(account, recipients, subject, body, attachment_paths, forma
 
             # Send the email
             server.sendmail(account["email"], recipient, msg.as_string())
-            print(f"High-importance email sent to {recipient}")
+            print(f"{index}/{total_recipients} High-importance email sent to {recipient}")
+
+            # Wait 20 seconds before sending the next email
+            if index < total_recipients:
+                time.sleep(1)
 
         # Close the server connection
         server.quit()

@@ -6,14 +6,14 @@ if __name__ == "__main__":
     # Configuration
     email_sender = "CWT"  # Name of the account as defined in .env
     email_receiver = "recipients.txt"  # Recipients file in the email folder
-    subject = "Random Subject"  # Enter the email subject directly here
+    subject = "Partnership Opportunity: EN ISO 9712 NDT Certification Collaboration with C-WT"  # Enter the email subject directly here
     body = "CWT.html"  # Email body file (body.txt for plain text or body.html for HTML)
     content_folder = "email"
 
     # Define paths
     email_folder = os.path.join(os.path.dirname(__file__), content_folder)
     recipients_file = os.path.join(email_folder, email_receiver)
-    content_path = os.path.join(email_folder, "content.txt")  # Specify the content file path
+    content_path = os.path.join(email_folder, "CWT_EN.docx")  # Specify the content file path
     body_file = os.path.join(email_folder, body)
 
     # Generate the email body content
