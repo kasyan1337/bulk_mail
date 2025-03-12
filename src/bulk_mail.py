@@ -1,8 +1,11 @@
 import os
 import re
 import smtplib
+import time
+from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email import encoders
 
 import fitz  # PyMuPDF for PDFs
 from docx import Document  # python-docx for Word files
@@ -48,7 +51,10 @@ def get_recipients(file_path):
 # Load email body content from a file
 def get_email_body(body_path, content_path=None):
     # If the file is a basic HTML file and does not require additional content, read it directly
-    if body_path.endswith(".html") and os.path.basename(body_path) not in ["CWT.html", "WTM.html"]:
+    if body_path.endswith(".html") and os.path.basename(body_path) not in [
+        "CWT.html",
+        "WTM.html",
+    ]:
         with open(body_path, "r") as file:
             return file.read()
 
@@ -75,7 +81,9 @@ def read_file_content(file_path):
         with open(file_path, "r") as file:
             content = file.read()
         # Convert plain text to HTML
-        return "<p>" + re.sub(r'\n\n+', '</p><p>', content).replace('\n', '<br>') + "</p>"
+        return (
+            "<p>" + re.sub(r"\n\n+", "</p><p>", content).replace("\n", "<br>") + "</p>"
+        )
 
     elif file_extension == ".pdf":
         # Extract text from PDF
@@ -104,7 +112,9 @@ def read_file_content(file_path):
 
     else:
         # Only raise an error for unsupported formats when the file isn't a basic HTML file
-        raise ValueError("Unsupported file format: Only .txt, .pdf, .docx, and .html are allowed for non-template HTML files.")
+        raise ValueError(
+            "Unsupported file format: Only .txt, .pdf, .docx, and .html are allowed for non-template HTML files."
+        )
 
 
 # Get file paths for any attachments
@@ -144,7 +154,7 @@ def send_emails_smtp(account, recipients, subject, body, attachment_paths, forma
             "CWT": "Kasim Janci (CWT)",
             "WTM": "Kasim Janci (WTM)",
             "TRISTOKORUN": "流沙奶黄包粉丝",
-            "TUAN": "Tuan Nguyen"
+            "TUAN": "Tuan Nguyen",
             # Add other accounts and display names as needed
         }
 
@@ -152,7 +162,8 @@ def send_emails_smtp(account, recipients, subject, body, attachment_paths, forma
         from_name = display_names.get(account["name"], account["email"])
         from_address = f"{from_name} <{account['email']}>"
 
-        for recipient in recipients:
+        total_recipients = len(recipients)
+        for index, recipient in enumerate(recipients, start=1):
             # Set up the MIME message structure
             msg = MIMEMultipart("alternative")
             msg["From"] = from_address
@@ -160,8 +171,8 @@ def send_emails_smtp(account, recipients, subject, body, attachment_paths, forma
             msg["Subject"] = subject
 
             # Set high-importance headers
-            msg["X-Priority"] = "1"          # Highest priority
-            msg["Importance"] = "high"       # Mark as important
+            msg["X-Priority"] = "1"  # Highest priority
+            msg["Importance"] = "high"  # Mark as important
             msg["X-MSMail-Priority"] = "High"  # Microsoft-specific header
 
             # Attach the HTML or plain text content
@@ -176,17 +187,25 @@ def send_emails_smtp(account, recipients, subject, body, attachment_paths, forma
             if attachment_paths:
                 for attachment_path in attachment_paths:
                     with open(attachment_path, "rb") as f:
-                        attachment = MIMEText(f.read(), "base64", "utf-8")
-                        attachment.add_header(
-                            "Content-Disposition",
-                            "attachment",
-                            filename=os.path.basename(attachment_path),
+                        # Create a MIMEApplication object for the attachment
+                        part = MIMEApplication(
+                            f.read(), Name=os.path.basename(attachment_path)
                         )
-                        msg.attach(attachment)
+                    # Add headers for the attachment
+                    part["Content-Disposition"] = (
+                        f'attachment; filename="{os.path.basename(attachment_path)}"'
+                    )
+                    msg.attach(part)
 
             # Send the email
             server.sendmail(account["email"], recipient, msg.as_string())
-            print(f"High-importance email sent to {recipient}")
+            print(
+                f"{index}/{total_recipients} High-importance email sent to {recipient}"
+            )
+
+            # Wait 1 second before sending the next email
+            if index < total_recipients:
+                time.sleep(1)
 
         # Close the server connection
         server.quit()
@@ -196,7 +215,9 @@ def send_emails_smtp(account, recipients, subject, body, attachment_paths, forma
 
 
 # Main function to initiate the bulk email sending process
-def send_bulk_emails(account_name, recipients_filename, subject, body_filename, content_path=None):
+def send_bulk_emails(
+    account_name, recipients_filename, subject, body_filename, content_path=None
+):
     # Check if body_filename requires specific account_name
     if body_filename == "CWT.html" and account_name != "CWT":
         print("Error: When using CWT.html as body, the email_sender must be 'CWT'.")
@@ -215,7 +236,7 @@ def send_bulk_emails(account_name, recipients_filename, subject, body_filename, 
     # Define file paths for data
     data_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../email")
     attachments_folder = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "attachments"
+        os.path.dirname(os.path.abspath(__file__)), "../attachments"
     )
 
     recipients_file = os.path.join(data_folder, recipients_filename)
