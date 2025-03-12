@@ -4,16 +4,18 @@ from src.bulk_mail import send_bulk_emails, get_recipients, get_email_body
 
 if __name__ == "__main__":
     # Configuration
-    email_sender = "CWT"  # Name of the account as defined in .env
+    email_sender = "WTM"  # Name of the account as defined in .env
     email_receiver = "recipients.txt"  # Recipients file in the email folder
-    subject = "Partnership Opportunity: EN ISO 9712 NDT Certification Collaboration with C-WT"  # Enter the email subject directly here
-    body = "CWT.html"  # Email body file (body.txt for plain text or body.html for HTML)
+    subject = "Dopyt cenníkov_Skúška tvrdosti_12032025"  # Enter the email subject directly here
+    body = "WTM.html"  # Email body file (body.txt for plain text or body.html for HTML)
     content_folder = "email"
 
     # Define paths
     email_folder = os.path.join(os.path.dirname(__file__), content_folder)
     recipients_file = os.path.join(email_folder, email_receiver)
-    content_path = os.path.join(email_folder, "CWT_EN.docx")  # Specify the content file path
+    content_path = os.path.join(
+        email_folder, "content.txt"
+    )  # Specify the content file path
     body_file = os.path.join(email_folder, body)
 
     # Generate the email body content
@@ -33,15 +35,19 @@ if __name__ == "__main__":
     print("\n".join(recipients))
 
     # Ask for confirmation before proceeding
-    confirm = input("\nIs this the correct list of recipients? Type 'Y' to confirm: ").strip()
-    if confirm.lower() == 'y':
+    confirm = input(
+        "\nIs this the correct list of recipients? Type 'Y' to confirm: "
+    ).strip()
+    if confirm.lower() == "y":
         # Send bulk emails
         send_bulk_emails(
             account_name=email_sender,
             recipients_filename=email_receiver,
             subject=subject,
-            body_filename=body,      # Pass body.html directly
-            content_path=content_path if "CWT.html" in body or "WTM.html" in body else None  # Only pass content_path if using a template
+            body_filename=body,  # Pass body.html directly
+            content_path=(
+                content_path if "CWT.html" in body or "WTM.html" in body else None
+            ),  # Only pass content_path if using a template
         )
         print("Email sent successfully.")
     else:
